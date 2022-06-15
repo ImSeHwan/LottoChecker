@@ -19,3 +19,10 @@ class lottoItem(@PrimaryKey(autoGenerate = true) var id: Int,
                 @ColumnInfo(name = "drwtNo6") var drwtNo6: Int,
                 @ColumnInfo(name = "bnusNo") var bnusNo: Int //보너스
 )
+
+@Serializable
+@Entity(tableName = "LottoInfo")
+class goodNumberItem(
+    @ColumnInfo(name = "lotto_num") var lottoNum: Int,
+    @ColumnInfo(name = "cnt") var cnt: Int
+)
