@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
+import world.junseo.co.kr.lottomanager.NumberManager
 import world.junseo.co.kr.lottomanager.db.LottoDB
 import world.junseo.co.kr.lottomanager.model.lottoItem
 import world.junseo.co.kr.lottomanager.network.RetrofitService
@@ -70,6 +71,12 @@ class LottoRepository(context: Context) {
                     Log.d("sehwan", "${fewDay}일 전 데이터, 날짜정보(${lastItem.drwNoDate})")
                     if(fewDay > 7) {
                         getLottoItem(lastItem.id).collect { item ->
+                            item.apply {
+                                val nums = intArrayOf(drwtNo1, drwtNo2, drwtNo3, drwtNo4, drwtNo5, drwtNo6)
+                                NumberManager.getInstance()?.let {
+                                    checkSum = checkSumString(nums)
+                                }
+                            }
                             LottoDB.getInstance(mContext)?.lottoNumDao()?.insert(item)
                         }
                     } else {
@@ -79,10 +86,32 @@ class LottoRepository(context: Context) {
             } ?: run {
                 Log.d("sehwan", "데이터가 없다 처음부터 넣어라!!!")
                 getLottoItem(1).collect { item ->
+                    item.apply {
+                        val nums = intArrayOf(drwtNo1, drwtNo2, drwtNo3, drwtNo4, drwtNo5, drwtNo6)
+                        NumberManager.getInstance()?.let {
+                            checkSum = checkSumString(nums)
+                        }
+                    }
                     LottoDB.getInstance(mContext)?.lottoNumDao()?.insert(item)
                 }
             }
         }
+    }
+
+    fun checkSumString(nums:IntArray) : String{
+        var result = ""
+        nums.sort()
+
+        for((x, i) in nums.withIndex()) {
+            result += i.toString()
+            if(x >= 6) {
+                break
+            }
+        }
+
+        Log.d("sehwan", "만들어진 텍스트는 $result")
+
+        return result
     }
 
     fun stopDBWorker() {

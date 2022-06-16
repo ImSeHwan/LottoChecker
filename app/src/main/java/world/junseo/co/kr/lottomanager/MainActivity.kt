@@ -11,7 +11,7 @@ import world.junseo.co.kr.lottomanager.db.LottoDB
 import world.junseo.co.kr.lottomanager.repository.LottoRepository
 
 class MainActivity : AppCompatActivity() {
-    var lottoRepository: LottoRepository? = null
+    private var lottoRepository: LottoRepository? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

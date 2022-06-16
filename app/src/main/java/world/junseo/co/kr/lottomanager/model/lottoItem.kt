@@ -17,7 +17,8 @@ class lottoItem(@PrimaryKey(autoGenerate = true) var id: Int,
                 @ColumnInfo(name = "drwtNo4") var drwtNo4: Int,
                 @ColumnInfo(name = "drwtNo5") var drwtNo5: Int,
                 @ColumnInfo(name = "drwtNo6") var drwtNo6: Int,
-                @ColumnInfo(name = "bnusNo") var bnusNo: Int //보너스
+                @ColumnInfo(name = "bnusNo") var bnusNo: Int, //보너스
+                @ColumnInfo(name = "checkSum") var checkSum: String
 )
 
 @Serializable
