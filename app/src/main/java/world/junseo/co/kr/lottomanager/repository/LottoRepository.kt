@@ -3,8 +3,10 @@ package world.junseo.co.kr.lottomanager.repository
 import android.content.Context
 import android.util.Log
 import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import world.junseo.co.kr.lottomanager.db.LottoDB
@@ -19,13 +21,15 @@ class LottoRepository(context: Context) {
     var mContext:Context
     var mJob: Job? = null
 
+    var loop = true
+
     init {
         mContext = context
     }
 
     private fun getLottoItem(drwNo: Int) : Flow<lottoItem> = flow {
         var startIndex = drwNo
-        var loop = true
+        //var loop = true
 
         try {
             while (loop) {
@@ -41,7 +45,7 @@ class LottoRepository(context: Context) {
                 } ?: run { loop = false }
             }
         } catch (e: Exception) {
-            Log.e("sehwan", "번호가져오기 실패 : ${e.cause}")
+            Log.e("sehwan", "번호가져오기 실패 : $e")
             loop = false
         }
     }
@@ -82,9 +86,15 @@ class LottoRepository(context: Context) {
     }
 
     fun stopDBWorker() {
-        mJob?.let {
-            if(mJob?.isActive == true) {
-                mJob?.cancel()
+        if(loop) loop = false
+
+        CoroutineScope(Default).launch {
+            delay(500)
+            mJob?.let {
+                if(mJob?.isActive == true) {
+                    Log.d("sehwan", "stopDBWorker working")
+                    mJob?.cancel()
+                }
             }
         }
     }
