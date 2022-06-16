@@ -26,6 +26,7 @@ class MainActivity : AppCompatActivity() {
 
         lottoRepository?.stopDBWorker();
         LottoDB.destroyInstance()
+        NumberManager.destroyInstance()
     }
 
     override fun onBackPressed() {
