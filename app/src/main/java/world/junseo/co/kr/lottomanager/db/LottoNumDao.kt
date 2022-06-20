@@ -13,11 +13,16 @@ interface LottoNumDao {
     fun getAll() : List<lottoItem>
 
     @Query("SELECT * FROM LottoInfo ORDER BY id DESC LIMIT 1")
-    fun getLastItem() : lottoItem
+    fun getLastItem() : lottoItem?
 
     @Insert(onConflict = REPLACE)
     fun insert(lottoItem: lottoItem)
 
+    // 숫자가 존재하는지 확인
+    @Query("SELECT COUNT(*) FROM LottoInfo where checkSum = :checkSum")
+    fun isExistNum(checkSum: String) : Int
+
+    // 그동안 가장 많이 나온 숫자 리스트
     @Query("SELECT lotto_num, SUM(cnt) AS cnt\n" +
             "  FROM ( SELECT drwtNo1 lotto_num, COUNT() cnt\n" +
             "           FROM LottoInfo\n" +

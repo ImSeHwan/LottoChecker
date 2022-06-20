@@ -6,7 +6,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import world.junseo.co.kr.lottomanager.NumberManager
@@ -18,19 +17,13 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
-class LottoRepository(context: Context) {
-    var mContext:Context
+class LottoRepository() {
     var mJob: Job? = null
 
     var loop = true
 
-    init {
-        mContext = context
-    }
-
     private fun getLottoItem(drwNo: Int) : Flow<lottoItem> = flow {
         var startIndex = drwNo
-        //var loop = true
 
         try {
             while (loop) {
@@ -53,7 +46,7 @@ class LottoRepository(context: Context) {
 
     fun dbWorker() {
         mJob = CoroutineScope(IO).launch {
-            val lastItem = LottoDB.getInstance(mContext)?.lottoNumDao()?.getLastItem()
+            val lastItem = LottoDB.getInstance()?.lottoNumDao()?.getLastItem()
             lastItem?.let {
                 Log.d("sehwan", "id(${lastItem.id}), date(${lastItem.drwNoDate})")
 
@@ -77,7 +70,7 @@ class LottoRepository(context: Context) {
                                     checkSum = checkSumString(nums)
                                 }
                             }
-                            LottoDB.getInstance(mContext)?.lottoNumDao()?.insert(item)
+                            LottoDB.getInstance()?.lottoNumDao()?.insert(item)
                         }
                     } else {
                         Log.d("sehwan", "수집할 데이터가 없다!!!")
@@ -92,7 +85,7 @@ class LottoRepository(context: Context) {
                             checkSum = checkSumString(nums)
                         }
                     }
-                    LottoDB.getInstance(mContext)?.lottoNumDao()?.insert(item)
+                    LottoDB.getInstance()?.lottoNumDao()?.insert(item)
                 }
             }
         }
