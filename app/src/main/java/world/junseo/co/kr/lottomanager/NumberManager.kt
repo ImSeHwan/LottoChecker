@@ -1,8 +1,10 @@
 package world.junseo.co.kr.lottomanager
 
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import world.junseo.co.kr.lottomanager.db.LottoDB
+import kotlin.random.Random
 
 class NumberManager() {
 
@@ -23,14 +25,76 @@ class NumberManager() {
         }
     }
 
-    // 중복없이 6자리 숫자를 뽑는다.
-    fun rand(): HashSet<Int> {
+    // 가중치에 따라 중복없이 랜덤으로 6자리 숫자를 뽑는다.
+    fun randWeighted(): HashSet<Int> {
         val nums = HashSet<Int>()
+        val random = Random
         while (nums.size < 6) {
-            nums.add(((Math.random() * 45) + 1).toInt())
+            getWeightedRandom(makeNumList(), random)?.let { nums.add(it) }
         }
 
         return nums
+    }
+
+    fun generateNumber() : List<Int>? {
+        var result = ""
+        val numList = getInstance()?.randWeighted()
+        numList?.let {
+            result = checkSumString(it.toIntArray())
+            Log.d("sehwan", "result : $result")
+
+            val count = LottoDB.getInstance()?.lottoNumDao()?.isExistNum(result)
+            if (count != null) {
+                if(count > 0) {
+                    generateNumber()
+                }
+            }
+        }
+
+        return numList?.toList()
+    }
+
+    fun checkSumString(nums:IntArray) : String{
+        var result = ""
+        nums.sort()
+
+        for((x, i) in nums.withIndex()) {
+            result += i.toString()
+            if(x >= 6) {
+                break
+            }
+        }
+
+        return result
+    }
+
+    private fun makeNumList() : Map<Int, Double> {
+        val map = HashMap<Int, Double>()
+        val numList = LottoDB.getInstance()?.lottoNumDao()?.getPopularNumber()
+
+        numList?.let {
+            for (item in numList) {
+                map[item.lottoNum] = item.cnt.toDouble()
+            }
+        }
+
+        return map
+    }
+
+    //가중치를 통해서 랜덤한 수를 뽑는다.
+    private fun <E> getWeightedRandom(weights: Map<E, Double>, random: Random): E? {
+        var result: E? = null
+        var bestValue = Double.MAX_VALUE
+        for (element in weights.keys) {
+            weights[element]?.let {
+                val value = -Math.log(random.nextDouble()) / it
+                if (value < bestValue) {
+                    bestValue = value
+                    result = element
+                }
+            }
+        }
+        return result
     }
 
     suspend fun lastWinningNumber(): String {

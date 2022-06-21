@@ -13,8 +13,6 @@ import world.junseo.co.kr.lottomanager.db.LottoDB
 import world.junseo.co.kr.lottomanager.model.lottoItem
 import world.junseo.co.kr.lottomanager.network.RetrofitService
 import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.*
 
 class LottoRepository() {
@@ -31,7 +29,6 @@ class LottoRepository() {
                 response?.body()?.let {
                     if(it.returnValue == "success") {
                         emit(it)
-                        Log.d("sehwan", "data emit : ${it.drwNoDate}")
                         delay(500)
                     } else {
                         loop = false
@@ -67,7 +64,7 @@ class LottoRepository() {
                             item.apply {
                                 val nums = intArrayOf(drwtNo1, drwtNo2, drwtNo3, drwtNo4, drwtNo5, drwtNo6)
                                 NumberManager.getInstance()?.let {
-                                    checkSum = checkSumString(nums)
+                                    checkSum = NumberManager.getInstance()?.checkSumString(nums) ?: ""
                                 }
                             }
                             LottoDB.getInstance()?.lottoNumDao()?.insert(item)
@@ -82,29 +79,13 @@ class LottoRepository() {
                     item.apply {
                         val nums = intArrayOf(drwtNo1, drwtNo2, drwtNo3, drwtNo4, drwtNo5, drwtNo6)
                         NumberManager.getInstance()?.let {
-                            checkSum = checkSumString(nums)
+                            checkSum = NumberManager.getInstance()?.checkSumString(nums) ?: ""
                         }
                     }
                     LottoDB.getInstance()?.lottoNumDao()?.insert(item)
                 }
             }
         }
-    }
-
-    fun checkSumString(nums:IntArray) : String{
-        var result = ""
-        nums.sort()
-
-        for((x, i) in nums.withIndex()) {
-            result += i.toString()
-            if(x >= 6) {
-                break
-            }
-        }
-
-        Log.d("sehwan", "만들어진 텍스트는 $result")
-
-        return result
     }
 
     fun stopDBWorker() {
