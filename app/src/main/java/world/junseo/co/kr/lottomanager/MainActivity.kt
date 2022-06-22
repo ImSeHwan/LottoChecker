@@ -48,10 +48,17 @@ class MainActivity : AppCompatActivity() {
     fun generateNumber() {
         job = CoroutineScope(Dispatchers.IO).launch  {
             val num1 = NumberManager.getInstance()?.generateNumber()
+            val num2 = NumberManager.getInstance()?.randomBySpecialNumber()
+
             withContext(Dispatchers.Main) {
                 num1?.sorted()?.let {
-                    val numList = "${it[0]}, ${it[1]}, ${it[2]}, ${it[3]}, ${it[4]}, ${it[5]}"
+                    val numList = "${it[0]}, ${it[1]}, ${it[2]}, ${it[3]}, ${it[4]}, ${it[5]} (자주 나오는 숫자)\n"
                     binding.tvWinningNumbers.text = numList
+                }
+
+                num2?.sorted()?.let {
+                    val numList = "${it[0]}, ${it[1]}, ${it[2]}, ${it[3]}, ${it[4]}, ${it[5]} (스페셜 번호)"
+                    binding.tvWinningNumbers.append(numList)
                 }
             }
         }

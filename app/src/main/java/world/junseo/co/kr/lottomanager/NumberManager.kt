@@ -1,5 +1,6 @@
 package world.junseo.co.kr.lottomanager
 
+import android.graphics.RadialGradient
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -24,6 +25,37 @@ class NumberManager() {
             INSTANCE = null
         }
     }
+
+    fun randomBySpecialNumber() : List<Int>{
+        val currentTime = System.currentTimeMillis()
+        val specialNums = mutableListOf(1*currentTime, 10*currentTime, 25*currentTime, 12*currentTime, 7*currentTime, 55*currentTime)
+        specialNums.shuffle()
+
+        val nums = HashSet<Int>()
+
+        while (nums.size < 6) {
+            nums.add(Random(specialNums[nums.size]).nextInt(45) + 1)
+        }
+
+        val checksumString = checkSumString(nums.toIntArray())
+        val count = LottoDB.getInstance()?.lottoNumDao()?.isExistNum(checksumString) ?: 0
+
+        if(count > 0) {
+            randomBySpecialNumber()
+        }
+
+        return nums.toList()
+    }
+
+/*    fun rand(): HashSet<Int> {
+        val nums = HashSet<Int>()
+
+        while (nums.size < 6) {
+            nums.add(((Math.random() * 45) + 1).toInt())
+        }
+
+        return nums
+    }*/
 
     // 가중치에 따라 중복없이 랜덤으로 6자리 숫자를 뽑는다.
     fun randWeighted(): HashSet<Int> {
@@ -107,7 +139,7 @@ class NumberManager() {
 
             lottoItem?.let {
                 lastNumInfo =
-                    "당첨일 : ${lottoItem.drwNoDate}\n당첨번호 ${lottoItem.drwtNo1}, ${lottoItem.drwtNo2}, ${lottoItem.drwtNo3}, ${lottoItem.drwtNo4}, ${lottoItem.drwtNo5}," +
+                    "당첨일 : ${lottoItem.drwNoDate}\n당첨번호 ${lottoItem.drwtNo1}, ${lottoItem.drwtNo2}, ${lottoItem.drwtNo3}, ${lottoItem.drwtNo4}, ${lottoItem.drwtNo5}, " +
                             "${lottoItem.drwtNo6}, 뽀나스(${lottoItem.bnusNo})"
             }
         }
