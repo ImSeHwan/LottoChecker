@@ -3,6 +3,7 @@ package world.junseo.co.kr.lottomanager
 import android.graphics.RadialGradient
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import world.junseo.co.kr.lottomanager.db.LottoDB
 import kotlin.random.Random
@@ -26,36 +27,66 @@ class NumberManager() {
         }
     }
 
-    fun randomBySpecialNumber() : List<Int>{
-        val currentTime = System.currentTimeMillis()
-        val specialNums = mutableListOf(1*currentTime, 10*currentTime, 25*currentTime, 12*currentTime, 7*currentTime, 55*currentTime)
+    suspend fun randomBySpecialNumber() : List<Int>{
+        val specialNums = mutableListOf(1, 10, 25, 12, 7, 55)
         specialNums.shuffle()
 
         val nums = HashSet<Int>()
+        var loop = true
 
-        while (nums.size < 6) {
-            nums.add(Random(specialNums[nums.size]).nextInt(45) + 1)
+        while (loop) {
+            var index = 0
+
+            while (nums.size < 6) {
+                nums.add(Random(specialNums[index]*System.currentTimeMillis()).nextInt(45) + 1)
+
+                if(nums.size > index) {
+                    index = nums.size
+                }
+
+                delay(10)
+            }
+
+            val checksumString = checkSumString(nums.toIntArray())
+            val count = LottoDB.getInstance()?.lottoNumDao()?.isExistNum(checksumString) ?: 0
+
+            if(count == 0) {
+                loop = false
+            } else {
+                nums.clear()
+            }
         }
 
-        val checksumString = checkSumString(nums.toIntArray())
-        val count = LottoDB.getInstance()?.lottoNumDao()?.isExistNum(checksumString) ?: 0
-
-        if(count > 0) {
-            randomBySpecialNumber()
-        }
+        Log.d("sehwan", "randomBySpecialNumber numList : $nums")
 
         return nums.toList()
     }
 
-/*    fun rand(): HashSet<Int> {
+    suspend fun randomByDate() : List<Int> {
         val nums = HashSet<Int>()
 
-        while (nums.size < 6) {
-            nums.add(((Math.random() * 45) + 1).toInt())
+        var loop = true
+
+        while (loop) {
+            while (nums.size < 6) {
+                nums.add(Random(System.currentTimeMillis()).nextInt(45) + 1)
+                delay(Random.nextInt(1, 10).toLong())
+            }
+
+            val checksumString = checkSumString(nums.toIntArray())
+            val count = LottoDB.getInstance()?.lottoNumDao()?.isExistNum(checksumString) ?: 0
+
+            if(count == 0) {
+                loop = false
+            } else {
+                nums.clear()
+            }
         }
 
-        return nums
-    }*/
+        Log.d("sehwan", "randomByDate numList : $nums")
+
+        return nums.toList()
+    }
 
     // 가중치에 따라 중복없이 랜덤으로 6자리 숫자를 뽑는다.
     fun randWeighted(): HashSet<Int> {
@@ -68,8 +99,36 @@ class NumberManager() {
         return nums
     }
 
-    fun generateNumber() : List<Int>? {
-        var result = ""
+    suspend fun generateNumber() : List<Int>? {
+        var result: String
+        var numList:HashSet<Int>? = null
+
+        var loop = true
+
+        while (loop) {
+            numList = getInstance()?.randWeighted()
+
+            numList?.let {
+                result = checkSumString(it.toIntArray())
+
+                val count = LottoDB.getInstance()?.lottoNumDao()?.isExistNum(result)
+                if (count != null) {
+                    if(count == 0) {
+                        loop = false
+                    } else {
+                        numList.clear()
+                        delay(10)
+                    }
+                } else {
+                    loop = false
+                }
+            } ?: run { loop = false }
+        }
+
+        Log.d("sehwan", "generateNumber numList : $numList")
+
+        return numList?.toList()
+/*        var result = ""
         val numList = getInstance()?.randWeighted()
         numList?.let {
             result = checkSumString(it.toIntArray())
@@ -83,7 +142,7 @@ class NumberManager() {
             }
         }
 
-        return numList?.toList()
+        return numList?.toList()*/
     }
 
     fun checkSumString(nums:IntArray) : String{
